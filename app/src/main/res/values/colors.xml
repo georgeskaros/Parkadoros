@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="btColor">#CE650074</color>
+    <color name="basicGreen">#4CAF50</color>
+
 </resources>

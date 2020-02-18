@@ -1,6 +1,7 @@
 package com.example.parkingfinder;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -13,10 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,23 +27,23 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    Button saveLocation,map,mic,car;
+    TTS tts;
+    MaterialButton saveLocation, map;
+    Button car;
     public double currentLat,currentLon;
     TextView txt, gpsConnection ;
-    TextToSpeech txtSp;
-    SpeechRecognizer speech;
     EditText numOfCars;
     RadioGroup allButtons;
 
@@ -56,31 +54,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        gpsConnection = findViewById(R.id.gpsConnection);
-        saveLocation = findViewById(R.id.saveLocation);
-        txt = findViewById(R.id.txt);
+        saveLocation = findViewById(R.id.save);
         map = findViewById(R.id.map);
-        mic = findViewById(R.id.mic);
+        gpsConnection = findViewById(R.id.gpsConnection);
+        map = findViewById(R.id.map);
 
         numOfCars = findViewById(R.id.txtcars);      //edit text for number of cars
         car = findViewById(R.id.car);                //button for putting the appropriate number of radio buttons
         allButtons = findViewById(R.id.radiogroup);  //radio group
 
-        map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,MapsActivity.class));
-            }
-        });
-
-        txtSp = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if(status!=TextToSpeech.ERROR){
-                    txtSp.setLanguage(Locale.UK);
-                }
-            }
-        });
+        tts = new TTS(this);
 
         car.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +92,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             Toast.makeText(this, "Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
         }
 
-        //initiate the function of the button
-        clickMic();
-        initializeSpeechRecognizer();
-
     }
 
     public void addRadioButtons(int number){
@@ -129,92 +108,39 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
     }
 
-    private void clickMic(){
-        mic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                txtSp.speak("Hello",TextToSpeech.QUEUE_FLUSH,null, null);
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
-                speech.startListening(intent);
-
-            }
-        });
+    //Speech Recognition Methods
+    public void speechRec(View view){
+        tts.speak("How can I help you?");
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Please say something!");
+        startActivityForResult(intent,742);
     }
 
-    private void initializeSpeechRecognizer(){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO}, 100);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode==742 && resultCode==RESULT_OK){
+            getWordFromResult(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
         }
-            if(SpeechRecognizer.isRecognitionAvailable(this)){
-                speech = SpeechRecognizer.createSpeechRecognizer(this);
-                speech.setRecognitionListener(new RecognitionListener() {
-                    @Override
-                    public void onReadyForSpeech(Bundle params) {
-
-                    }
-
-                    @Override
-                    public void onBeginningOfSpeech() {
-
-                    }
-
-                    @Override
-                    public void onRmsChanged(float rmsdB) {
-
-                    }
-
-                    @Override
-                    public void onBufferReceived(byte[] buffer) {
-
-                    }
-
-                    @Override
-                    public void onEndOfSpeech() {
-
-                    }
-
-                    @Override
-                    public void onError(int error) {
-
-                    }
-
-                    @Override
-                    public void onResults(Bundle results) {
-                        List<String> result = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        processResult(result.get(0));
-                    }
-
-                    @Override
-                    public void onPartialResults(Bundle partialResults) {
-
-                    }
-
-                    @Override
-                    public void onEvent(int eventType, Bundle params) {
-
-                    }
-                });
-            }
     }
 
-    private void processResult(String command) {
-        command = command.toLowerCase();
-        if(command.contains("open")||command.contains("view")||command.contains("show")){
-            if(command.contains("map")){
-                txtSp.speak("Sure bro", TextToSpeech.QUEUE_FLUSH,null, null);
+    private void getWordFromResult(ArrayList<String> results) {
+        for (String str : results) {
+            if (str.equals("save position")) {
+                saveLocation.performClick();
+            }
+            else if (str.equals("open map")) {
                 map.performClick();
-                map.setPressed(true);
-                map.invalidate();
-                map.setPressed(false);
-                map.invalidate();
-
-            }else {
-                txtSp.speak("Could you try again? Maybe i heard something wrong.", TextToSpeech.QUEUE_FLUSH, null, null);
             }
         }
+    }
+
+    public void openMaps(View view) {
+        Intent intent = new Intent(this, MapsActivity.class);
+        startActivity(intent);
     }
 
     public void saveLocation(View view) {
@@ -228,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
                     Log.d(TAG, "Added location with id: " + documentReference.getId());
-                    txt.setText(Double.toString(currentLat));
                 }
 
             })
@@ -236,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.w(TAG, "Error adding location", e);
-                    txt.setText(e.toString());
                 }
             });
     }
@@ -247,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         currentLat = location.getLatitude();
         currentLon = location.getLongitude();
         if (currentLat != 0) {
-            gpsConnection.setText("GPS connection established");
             saveLocation.setEnabled(true);
         }
     }
@@ -269,6 +192,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     public void onClick(View v) {
-       // Log.d(TAG, " Name " + ((RadioButton)v).getText() +" Id is "+v.getId());
+        // Log.d(TAG, " Name " + ((RadioButton)v).getText() +" Id is "+v.getId());
     }
 }

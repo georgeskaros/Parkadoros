@@ -11,56 +11,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="12dp"
         android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/txt"
-        android:textSize="20sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="location"/>
-
-    <Button
-        android:id="@+id/saveLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="50dp"
-        android:background="@drawable/rounded_button"
-        android:enabled="false"
-        android:onClick="saveLocation"
-        android:text="button"
-        android:textColor="@android:color/white"
-        android:textSize="20sp" />
-    <Button
-        android:id="@+id/map"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
-        android:background="@drawable/rounded_button"
-        android:text="map"
-        android:textColor="@android:color/white"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/mic"
-        android:layout_width="50sp"
-        android:layout_height="50sp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="0dp"
-        android:background="@drawable/rounded_button"
-        android:text="mic"
-        android:textColor="@android:color/white"
-        android:textSize="20sp" />
     <Button
         android:id="@+id/car"
-        android:layout_width="60sp"
-        android:layout_height="60sp"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="0dp"
@@ -73,9 +30,9 @@
         android:id="@+id/txtcars"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:ems="5"
         android:inputType="number" />
 
     <RadioGroup
@@ -85,5 +42,41 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:orientation="vertical" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:adjustViewBounds="false"
+        android:contentDescription="Speech Recognition Button"
+        android:cropToPadding="false"
+        android:onClick="speechRec"
+        android:src="@drawable/ic_speech_rec"
+        tools:src="@drawable/ic_speech_rec" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="35dp"
+        android:layout_marginBottom="75dp"
+        android:onClick="openMaps"
+        android:text="Maps" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="35dp"
+        android:layout_marginBottom="75dp"
+        android:enabled="false"
+        android:onClick="saveLocation"
+        android:text="Save Location" />
 
 </RelativeLayout>
