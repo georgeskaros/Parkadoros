@@ -1,5 +1,6 @@
 package com.example.parkingfinder;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -15,31 +16,44 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     //initiate button ,text view and two public variables for current
-    Button btn,map,mic;
-    public double currentlat,currentlon;
-    TextView txt ;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    Button saveLocation,map,mic;
+    public double currentLat,currentLon;
+    TextView txt, gpsConnection ;
     TextToSpeech txtSp;
     SpeechRecognizer speech;
+
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btn = (Button)findViewById(R.id.btn);
-        txt = (TextView)findViewById(R.id.txt);
-        map = (Button)findViewById(R.id.map);
-        mic = (Button)findViewById(R.id.mic);
+        gpsConnection = findViewById(R.id.gpsConnection);
+        saveLocation = findViewById(R.id.saveLocation);
+        txt = findViewById(R.id.txt);
+        map = findViewById(R.id.map);
+        mic = findViewById(R.id.mic);
 
 
         map.setOnClickListener(new View.OnClickListener() {
@@ -48,15 +62,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(new Intent(MainActivity.this,MapsActivity.class));
             }
         });
-
-        //asking for permission to use location
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1000);
-        } else {
-            doStuff();
-
-        }
 
         txtSp = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -67,19 +72,29 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
 
+        //asking for permission to use location
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1000);
+        } else {
+            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+            if (lm != null) {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            }
+            Toast.makeText(this, "Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
+        }
+
         //initiate the function of the button
-
-
-        clickbtn();
-        clickmic();
+        clickMic();
         initializeSpeechRecognizer();
     }
 
-    private void clickmic(){
+    private void clickMic(){
         mic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                txtSp.speak("Hello",TextToSpeech.QUEUE_FLUSH,null);
+                txtSp.speak("Hello",TextToSpeech.QUEUE_FLUSH,null, null);
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
@@ -150,48 +165,52 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         command = command.toLowerCase();
         if(command.contains("open")||command.contains("view")||command.contains("show")){
             if(command.contains("map")){
-                txtSp.speak("Sure bro", TextToSpeech.QUEUE_FLUSH,null);
+                txtSp.speak("Sure bro", TextToSpeech.QUEUE_FLUSH,null, null);
                 map.performClick();
                 map.setPressed(true);
                 map.invalidate();
                 map.setPressed(false);
                 map.invalidate();
 
-        }else {
-            txtSp.speak("Could you try again? Maybe i heard something wrong.", TextToSpeech.QUEUE_FLUSH, null);
-        }
-
+            }else {
+                txtSp.speak("Could you try again? Maybe i heard something wrong.", TextToSpeech.QUEUE_FLUSH, null, null);
+            }
         }
     }
 
-    private void clickbtn(){
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //on button click print on text view the current values
-                txt.setText(currentlat +" "+ currentlon);
-            }
-        });
+    public void saveLocation(View view) {
+        Map<String, Object> location = new HashMap<>();
+        location.put("latitude", currentLat);
+        location.put("longitude", currentLon);
+
+        db.collection("locations")
+            .add(location)
+            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                @Override
+                public void onSuccess(DocumentReference documentReference) {
+                    Log.d(TAG, "Added location with id: " + documentReference.getId());
+                    txt.setText(Double.toString(currentLat));
+                }
+
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error adding location", e);
+                    txt.setText(e.toString());
+                }
+            });
     }
 
     @Override
     public void onLocationChanged(Location location) {
         //get on location change the current lat and lon
-        currentlat = location.getLatitude();
-        currentlon = location.getLongitude();
-    }
-
-    private void doStuff(){
-        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        if (lm != null){
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
-            //commented, this is from the old version
-            // this.onLocationChanged(null);
+        currentLat = location.getLatitude();
+        currentLon = location.getLongitude();
+        if (currentLat != 0) {
+            gpsConnection.setText("GPS connection established");
+            saveLocation.setEnabled(true);
         }
-        Toast.makeText(this,"Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
-
-
     }
 
     @Override
