@@ -8,7 +8,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -39,7 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
-    //initiate button ,text view and two public variables for current
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
     Button saveLocation,map,mic,car;
@@ -47,9 +46,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     TextView txt, gpsConnection ;
     TextToSpeech txtSp;
     SpeechRecognizer speech;
-    EditText numofcars;
+    EditText numOfCars;
     RadioGroup allButtons;
-    String TAG = "TestActivity";
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -64,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         map = findViewById(R.id.map);
         mic = findViewById(R.id.mic);
 
-        numofcars = findViewById(R.id.txtcars);      //edit text for number of cars
+        numOfCars = findViewById(R.id.txtcars);      //edit text for number of cars
         car = findViewById(R.id.car);                //button for putting the appropriate number of radio buttons
         allButtons = findViewById(R.id.radiogroup);  //radio group
 
@@ -87,12 +85,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         car.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String temp = numofcars.getText().toString().trim();
+                String temp = numOfCars.getText().toString().trim();
                 if (temp.matches("")) {
                     Toast.makeText(MainActivity.this, "You did not enter a number", Toast.LENGTH_SHORT).show();
                 }else{
                     car.setEnabled(false);
-                    int number = Integer.parseInt(numofcars.getText().toString().trim());
+                    int number = Integer.parseInt(numOfCars.getText().toString().trim());
                     addRadioButtons(number);
                 }
             }
@@ -131,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
     }
 
-    private void clickmic(){
+    private void clickMic(){
         mic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
