@@ -11,16 +11,25 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity implements LocationListener {
     //initiate button ,text view and two public variables for current
-    Button btn,map;
+    Button btn,map,mic;
     public double currentlat,currentlon;
     TextView txt ;
+    TextToSpeech txtSp;
+    SpeechRecognizer speech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btn = (Button)findViewById(R.id.btn);
         txt = (TextView)findViewById(R.id.txt);
         map = (Button)findViewById(R.id.map);
+        mic = (Button)findViewById(R.id.mic);
 
 
         map.setOnClickListener(new View.OnClickListener() {
@@ -47,10 +57,113 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             doStuff();
 
         }
-        //initiate the function of the button
-        clickbtn();
 
+        txtSp = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status!=TextToSpeech.ERROR){
+                    txtSp.setLanguage(Locale.UK);
+                }
+            }
+        });
+
+        //initiate the function of the button
+
+
+        clickbtn();
+        clickmic();
+        initializeSpeechRecognizer();
     }
+
+    private void clickmic(){
+        mic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                txtSp.speak("Hello",TextToSpeech.QUEUE_FLUSH,null);
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
+                speech.startListening(intent);
+
+            }
+        });
+    }
+
+    private void initializeSpeechRecognizer(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO}, 100);
+        }
+            if(SpeechRecognizer.isRecognitionAvailable(this)){
+                speech = SpeechRecognizer.createSpeechRecognizer(this);
+                speech.setRecognitionListener(new RecognitionListener() {
+                    @Override
+                    public void onReadyForSpeech(Bundle params) {
+
+                    }
+
+                    @Override
+                    public void onBeginningOfSpeech() {
+
+                    }
+
+                    @Override
+                    public void onRmsChanged(float rmsdB) {
+
+                    }
+
+                    @Override
+                    public void onBufferReceived(byte[] buffer) {
+
+                    }
+
+                    @Override
+                    public void onEndOfSpeech() {
+
+                    }
+
+                    @Override
+                    public void onError(int error) {
+
+                    }
+
+                    @Override
+                    public void onResults(Bundle results) {
+                        List<String> result = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        processResult(result.get(0));
+                    }
+
+                    @Override
+                    public void onPartialResults(Bundle partialResults) {
+
+                    }
+
+                    @Override
+                    public void onEvent(int eventType, Bundle params) {
+
+                    }
+                });
+            }
+    }
+
+    private void processResult(String command) {
+        command = command.toLowerCase();
+        if(command.contains("open")||command.contains("view")||command.contains("show")){
+            if(command.contains("map")){
+                txtSp.speak("Sure bro", TextToSpeech.QUEUE_FLUSH,null);
+                map.performClick();
+                map.setPressed(true);
+                map.invalidate();
+                map.setPressed(false);
+                map.invalidate();
+
+        }else {
+            txtSp.speak("Could you try again? Maybe i heard something wrong.", TextToSpeech.QUEUE_FLUSH, null);
+        }
+
+        }
+    }
+
     private void clickbtn(){
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
