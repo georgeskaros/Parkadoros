@@ -7,9 +7,11 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -17,19 +19,26 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
     //initiate button ,text view and two public variables for current
-    Button btn,map,mic;
+    Button btn,map,mic,car;
     public double currentlat,currentlon;
     TextView txt ;
     TextToSpeech txtSp;
     SpeechRecognizer speech;
+    EditText numofcars;
+    RadioGroup allButtons;
+    String TAG = "TestActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +50,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         map = (Button)findViewById(R.id.map);
         mic = (Button)findViewById(R.id.mic);
 
+        numofcars = findViewById(R.id.txtcars);      //edit text for number of cars
+        car = findViewById(R.id.car);                //button for putting the appropriate number of radio buttons
+        allButtons = findViewById(R.id.radiogroup);  //radio group
 
         map.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,14 +79,44 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
 
+        car.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String temp = numofcars.getText().toString().trim();
+                if (temp.matches("")) {
+                    Toast.makeText(MainActivity.this, "You did not enter a number", Toast.LENGTH_SHORT).show();
+                }else{
+                    car.setEnabled(false);
+                    int number = Integer.parseInt(numofcars.getText().toString().trim());
+                    addRadioButtons(number);
+                }
+            }
+        });
         //initiate the function of the button
 
 
         clickbtn();
         clickmic();
         initializeSpeechRecognizer();
+
     }
 
+
+    public void addRadioButtons(int number){
+        allButtons.setOrientation(LinearLayout.VERTICAL);
+        for (int i = 1; i <= number; i++) {
+            RadioButton rdbtn = new RadioButton(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                rdbtn.setId(View.generateViewId());
+            }
+            rdbtn.setText("Vehicle " + rdbtn.getId());
+            rdbtn.setOnClickListener(this);
+            allButtons.addView(rdbtn);
+
+        }
+
+
+    }
     private void clickmic(){
         mic.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -207,5 +249,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    @Override
+    public void onClick(View v) {
+       // Log.d(TAG, " Name " + ((RadioButton)v).getText() +" Id is "+v.getId());
     }
 }
