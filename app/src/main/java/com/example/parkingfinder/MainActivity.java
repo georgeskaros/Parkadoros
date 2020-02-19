@@ -33,6 +33,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     String vehicleType;
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,15 +204,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     public void saveLocation(View view) {
         if (getVehicleType() != null) {
             Map<String, Object> location = new HashMap<>();
+            final Date currentTime = Calendar.getInstance().getTime();
             location.put("latitude", currentLat);
             location.put("longitude", currentLon);
             location.put("vehicleType",getVehicleType());
+            location.put("time",currentTime);
             db.collection("locations")
                     .add(location)
                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
                             Log.d(TAG, "Added location with id: " + documentReference.getId());
+                            Toast.makeText(MainActivity.this, String.valueOf(currentTime), Toast.LENGTH_SHORT).show();
                         }
 
                     })
