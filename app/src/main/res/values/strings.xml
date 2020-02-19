@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">ParkingFinder</string>
     <string name="title_activity_maps">Map</string>
+    <string name="carNum">Save Cars</string>
+    <string name="speechRec">Speech Recognition Button</string>
+    <string name="map">Maps</string>
+    <string name="saveLoc">Save Location</string>
+    <string name="settings">Settings</string>
+    <string name="setGreek">Use Greek</string>
+    <string name="setEnglish">Use English</string>
+    <string name="saveCarId">Make Default</string>
 </resources>

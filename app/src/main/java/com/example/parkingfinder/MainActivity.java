@@ -12,9 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.View;
@@ -42,12 +40,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     TTS tts;
     MaterialButton saveLocation, map;
-    Button car,btn;
     public double currentLat,currentLon;
-    TextView gpsConnection ;
-    EditText numOfCars;
-    RadioGroup allButtons;
-    String vehicleType;
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -56,37 +49,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btn =findViewById(R.id.btn);
         saveLocation = findViewById(R.id.save);
         map = findViewById(R.id.map);
-        gpsConnection = findViewById(R.id.gpsConnection);
-        map = findViewById(R.id.map);
-
-        numOfCars = findViewById(R.id.txtcars);      //edit text for number of cars
-        car = findViewById(R.id.car);                //button for putting the appropriate number of radio buttons
-        allButtons = findViewById(R.id.radiogroup);  //radio group
 
         tts = new TTS(this);
-
-        car.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String temp = numOfCars.getText().toString().trim();
-                if (temp.matches("")||temp.matches("0")) {
-                    Toast.makeText(MainActivity.this, "You did not enter a number or you entered 0", Toast.LENGTH_SHORT).show();
-                }else{
-                    car.setEnabled(false);
-                    int number = Integer.parseInt(numOfCars.getText().toString().trim());
-                    addRadioButtons(number);
-                }
-            }
-        });
-
-        getVehicleType();
-        /////////////////////////////////////////
-        onButtonClick();/////////////////////////
-        /////////////////////////////////////////
-
 
         //asking for permission to use location
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -103,66 +69,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     }
 
-
-
-    //for the db to take the type of the vehicle , IF return is Null there is no button selected , IF return is string then there is a button selected
-    public String getVehicleType(){
-
-        if (allButtons.getCheckedRadioButtonId() == -1)
-        {
-            // no radio buttons are checked
-            Toast.makeText(MainActivity.this, "There are no buttons", Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        else
-        {
-            int selectedId = allButtons.getCheckedRadioButtonId();
-            RadioButton selectedRadioButton = findViewById(selectedId);
-            vehicleType = selectedRadioButton.getText().toString();
-            return vehicleType;
-        }
-
+    public void openSettings(View view) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
-
-    //////
-    //made a button to check if the radio buttons work properly
-    //////
-    public void onButtonClick(){
-        btn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if (allButtons.getCheckedRadioButtonId() == -1)
-                {
-                    // no radio buttons are checked
-                    Toast.makeText(MainActivity.this, "There are no buttons", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    int selectedId = allButtons.getCheckedRadioButtonId();
-                    RadioButton selectedRadioButton = findViewById(selectedId);
-                    gpsConnection.setText(selectedRadioButton.getText().toString());
-                }
-            }
-        });
-    }
-
-    public void addRadioButtons(int number){
-        allButtons.setOrientation(LinearLayout.VERTICAL);
-        for (int i = 1; i <= number; i++) {
-            RadioButton rdbtn = new RadioButton(this);
-            rdbtn.setId(View.generateViewId());
-            rdbtn.setText("Vehicle " + rdbtn.getId());
-            rdbtn.setOnClickListener(this);
-            allButtons.addView(rdbtn);
-
-        }
-        //RadioButton rb = new RadioButton(this);
-        //rb.setId(View.generateViewId());
-        //rb.setText("All parking lots");
-        //rb.setOnClickListener(this);
-        //allButtons.addView(rb);
-    }
-
     //Speech Recognition Methods
     public void speechRec(View view){
         tts.speak("How can I help you?");
@@ -199,29 +109,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     public void saveLocation(View view) {
-        if (getVehicleType() != null) {
-            Map<String, Object> location = new HashMap<>();
-            location.put("latitude", currentLat);
-            location.put("longitude", currentLon);
-            location.put("vehicleType",getVehicleType());
-            db.collection("locations")
-                    .add(location)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d(TAG, "Added location with id: " + documentReference.getId());
-                        }
+        Map<String, Object> location = new HashMap<>();
+        location.put("latitude", currentLat);
+        location.put("longitude", currentLon);
+        db.collection("locations")
+                .add(location)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "Added location with id: " + documentReference.getId());
+                    }
 
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w(TAG, "Error adding location", e);
-                        }
-                    });
-        } else {
-            Toast.makeText(MainActivity.this, "Can not save a location without a vehicle type selected ", Toast.LENGTH_SHORT).show();
-        }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding location", e);
+                    }
+                });
     }
 
     @Override
