@@ -77,16 +77,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             int i = 0;      //demo code to check if it works
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 LatLng location = new LatLng(document.getDouble("latitude"),document.getDouble("longitude"));       //get location from db
+                                String vehicleType = document.getString("vehicleType");
                                 MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
                                 markerOptions.position(location);
-                                markerOptions.title(location.toString());               //setting a title to each of the markers , now the title is the LatLng
+                                markerOptions.title(vehicleType);               //setting a title to each of the markers , now the title is the LatLng
                                 i++;                                                    //demo code to check
                                 markerOptions.snippet(String.valueOf(i));               //can put anything in here , this is like a comment to the title
                                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));       //set a car icon
                                 //Marker locationmarker = mMap.addMarker(new MarkerOptions().position(location));
-                                Marker locationmarker = mMap.addMarker(markerOptions);
-                                locationmarker.setDraggable(true);
-                                locationmarker.showInfoWindow();
+                                Marker locationMarker = mMap.addMarker(markerOptions);
+                                locationMarker.setDraggable(true);
+                                locationMarker.showInfoWindow();
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location,14.0f));
                             }

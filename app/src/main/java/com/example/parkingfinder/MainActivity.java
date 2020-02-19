@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     TextView gpsConnection ;
     EditText numOfCars;
     RadioGroup allButtons;
+    String vehicleType;
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -70,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             @Override
             public void onClick(View v) {
                 String temp = numOfCars.getText().toString().trim();
-                if (temp.matches("")) {
-                    Toast.makeText(MainActivity.this, "You did not enter a number", Toast.LENGTH_SHORT).show();
+                if (temp.matches("")||temp.matches("0")) {
+                    Toast.makeText(MainActivity.this, "You did not enter a number or you entered 0", Toast.LENGTH_SHORT).show();
                 }else{
                     car.setEnabled(false);
                     int number = Integer.parseInt(numOfCars.getText().toString().trim());
@@ -80,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             }
         });
 
-
+        getVehicleType();
         /////////////////////////////////////////
-        onButtonclick();/////////////////////////
+        onButtonClick();/////////////////////////
         /////////////////////////////////////////
 
 
@@ -100,10 +101,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
 
     }
+
+
+
+    //for the db to take the type of the vehicle , IF return is Null there is no button selected , IF return is string then there is a button selected
+    public String getVehicleType(){
+
+        if (allButtons.getCheckedRadioButtonId() == -1)
+        {
+            // no radio buttons are checked
+            Toast.makeText(MainActivity.this, "There are no buttons", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        else
+        {
+            int selectedId = allButtons.getCheckedRadioButtonId();
+            RadioButton selectedRadioButton = findViewById(selectedId);
+            vehicleType = selectedRadioButton.getText().toString();
+            return vehicleType;
+        }
+
+    }
+
     //////
     //made a button to check if the radio buttons work properly
     //////
-    public void onButtonclick(){
+    public void onButtonClick(){
         btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -172,25 +195,29 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     public void saveLocation(View view) {
-        Map<String, Object> location = new HashMap<>();
-        location.put("latitude", currentLat);
-        location.put("longitude", currentLon);
+        if (getVehicleType() != null) {
+            Map<String, Object> location = new HashMap<>();
+            location.put("latitude", currentLat);
+            location.put("longitude", currentLon);
+            location.put("vehicleType",getVehicleType());
+            db.collection("locations")
+                    .add(location)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Log.d(TAG, "Added location with id: " + documentReference.getId());
+                        }
 
-        db.collection("locations")
-            .add(location)
-            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                @Override
-                public void onSuccess(DocumentReference documentReference) {
-                    Log.d(TAG, "Added location with id: " + documentReference.getId());
-                }
-
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Error adding location", e);
-                }
-            });
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w(TAG, "Error adding location", e);
+                        }
+                    });
+        } else {
+            Toast.makeText(MainActivity.this, "Can not save a location without a vehicle type selected ", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
