@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     TTS tts;
     MaterialButton saveLocation, map;
-    Button car;
+    Button car,btn;
     public double currentLat,currentLon;
-    TextView txt, gpsConnection ;
+    TextView gpsConnection ;
     EditText numOfCars;
     RadioGroup allButtons;
 
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        btn =findViewById(R.id.btn);
         saveLocation = findViewById(R.id.save);
         map = findViewById(R.id.map);
         gpsConnection = findViewById(R.id.gpsConnection);
@@ -78,7 +79,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 }
             }
         });
-        
+
+
+        /////////////////////////////////////////
+        onButtonclick();/////////////////////////
+        /////////////////////////////////////////
+
+
         //asking for permission to use location
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
@@ -92,6 +99,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             Toast.makeText(this, "Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
         }
 
+    }
+    //////
+    //made a button to check if the radio buttons work properly
+    //////
+    public void onButtonclick(){
+        btn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (allButtons.getCheckedRadioButtonId() == -1)
+                {
+                    // no radio buttons are checked
+                    Toast.makeText(MainActivity.this, "There are no buttons", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    int selectedId = allButtons.getCheckedRadioButtonId();
+                    RadioButton selectedRadioButton = findViewById(selectedId);
+                    gpsConnection.setText(selectedRadioButton.getText().toString());
+                }
+            }
+        });
     }
 
     public void addRadioButtons(int number){
@@ -129,10 +157,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     private void getWordFromResult(ArrayList<String> results) {
         for (String str : results) {
-            if (str.equals("save position")) {
+            if (str.contains("save position")||str.contains("save location")) {
                 saveLocation.performClick();
             }
-            else if (str.equals("open map")) {
+            else if (str.contains("open map")||str.contains("open maps")) {
                 map.performClick();
             }
         }

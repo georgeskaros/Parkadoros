@@ -13,6 +13,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -23,6 +24,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+
+import io.opencensus.internal.Utils;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -60,7 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * installed Google Play services and returned to the app.
      */
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setMyLocationEnabled(true);
@@ -71,10 +74,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            int i = 0;      //demo code to check if it works
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                LatLng location = new LatLng(document.getDouble("latitude"),document.getDouble("longitude"));
-                                mMap.addMarker(new MarkerOptions().position(location));
+                                LatLng location = new LatLng(document.getDouble("latitude"),document.getDouble("longitude"));       //get location from db
+                                MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
+                                markerOptions.position(location);
+                                markerOptions.title(location.toString());               //setting a title to each of the markers , now the title is the LatLng
+                                i++;                                                    //demo code to check
+                                markerOptions.snippet(String.valueOf(i));               //can put anything in here , this is like a comment to the title
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));       //set a car icon
+                                //Marker locationmarker = mMap.addMarker(new MarkerOptions().position(location));
+                                Marker locationmarker = mMap.addMarker(markerOptions);
+                                locationmarker.setDraggable(true);
+                                locationmarker.showInfoWindow();
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location,14.0f));
                             }
                         } else {
                             Toast.makeText(MapsActivity.this, "Can't find a saved location", Toast.LENGTH_SHORT);
