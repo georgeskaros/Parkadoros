@@ -14,6 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.View;
@@ -149,14 +150,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         allButtons.setOrientation(LinearLayout.VERTICAL);
         for (int i = 1; i <= number; i++) {
             RadioButton rdbtn = new RadioButton(this);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                rdbtn.setId(View.generateViewId());
-            }
+            rdbtn.setId(View.generateViewId());
             rdbtn.setText("Vehicle " + rdbtn.getId());
             rdbtn.setOnClickListener(this);
             allButtons.addView(rdbtn);
 
         }
+        //RadioButton rb = new RadioButton(this);
+        //rb.setId(View.generateViewId());
+        //rb.setText("All parking lots");
+        //rb.setOnClickListener(this);
+        //allButtons.addView(rb);
     }
 
     //Speech Recognition Methods
