@@ -82,7 +82,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setMyLocationEnabled(true);
-        //TODO make an if so if the radioBtnValue is "All parking lots" will print all the parking lots that are in the db
         if(!radioBtnValue.equals("All parking lots")) {
             db.collection("locations")
                     .whereEqualTo("vehicleType", radioBtnValue)
@@ -122,7 +121,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     }
                                 }
                                 if(lat>0 && lng>0){
-                                    //TODO make an IF so it will check if latLng is (0,0) an will not process the marker
                                     LatLng location = new LatLng(lat, lng);
                                     MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
                                     markerOptions.position(location);
