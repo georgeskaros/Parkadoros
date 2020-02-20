@@ -3,6 +3,7 @@ package com.example.parkingfinder;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
+import android.annotation.SuppressLint;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -33,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.opencensus.internal.Utils;
 
@@ -87,6 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .whereEqualTo("vehicleType", radioBtnValue)
                     .get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @SuppressLint("DefaultLocale")
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
@@ -125,6 +128,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
                                     markerOptions.position(location);
                                     markerOptions.title(vehicleType);                                   //setting a title to the marker , now the title is
+                                    long timePassed = currentDate.getTime() - maxDate.getTime();
+                                    markerOptions.snippet(String.format("%d h, %d min, %d sec",
+                                            TimeUnit.MILLISECONDS.toHours(timePassed),
+                                            TimeUnit.MILLISECONDS.toMinutes(timePassed) -
+                                                    TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(timePassed)),
+                                            TimeUnit.MILLISECONDS.toSeconds(timePassed) -
+                                                    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(timePassed))));
                                     markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
                                     Marker locationMarker = mMap.addMarker(markerOptions);
                                     locationMarker.setDraggable(true);
@@ -152,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
                                 markerOptions.position(location);
                                 markerOptions.title(vehicle);               //setting a title to each of the markers , now the title is the LatLng
-                                markerOptions.snippet("comment");               //can put anything in here , this is like a comment to the title
+                                //markerOptions.snippet("comment");               //can put anything in here , this is like a comment to the title
                                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));       //set a car icon
                                 Marker locationMarker = mMap.addMarker(markerOptions);
                                 locationMarker.setDraggable(true);
