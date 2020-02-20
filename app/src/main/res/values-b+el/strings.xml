@@ -10,4 +10,7 @@
     <string name="setGreek">Χρησιμοποιήστε Ελληνικά</string>
     <string name="setEnglish">Χρησιμοποιήστε Αγγλικά</string>
     <string name="saveCarId">Προεπιλογή Αυτοκινήτου</string>
+    <string name="register">Εγγραφή</string>
+    <string name="login">Σύνδεση</string>
+    <string name="logout">Αποσύνδεση</string>
 </resources>

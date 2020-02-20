@@ -9,4 +9,7 @@
     <string name="setGreek">Use Greek</string>
     <string name="setEnglish">Use English</string>
     <string name="saveCarId">Make Default</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
 </resources>

@@ -9,7 +9,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Locale;
 
@@ -47,7 +48,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void saveCars(View view) {
-        if (numberOfCars.getText() != null) {
+        if (!numberOfCars.getText().toString().equals("")) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt("cars", Integer.parseInt(numberOfCars.getText().toString()));
             editor.apply();
@@ -124,5 +125,11 @@ public class SettingsActivity extends AppCompatActivity {
         rb.setId(allParkingSpots);
         rb.setText("All parking spots");
         allButtons.addView(rb);
+    }
+
+    public void logOut(View view) {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }

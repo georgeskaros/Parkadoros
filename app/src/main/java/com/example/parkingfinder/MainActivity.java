@@ -17,11 +17,14 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -33,10 +36,14 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
+    ImageButton mic, settings;
     SharedPreferences sharedPreferences;
     TTS tts;
-    MaterialButton saveLocation, map;
+    MaterialButton saveLocation, map, login, register;
     public double currentLat,currentLon;
+
+    FirebaseAuth firebaseAuth;
+    FirebaseAuth.AuthStateListener authStateListener;
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -45,12 +52,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        firebaseAuth = FirebaseAuth.getInstance();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        tts = new TTS(this);
+
+        mic = findViewById(R.id.microphone);
+        settings = findViewById(R.id.settingsButton);
         saveLocation = findViewById(R.id.save);
         map = findViewById(R.id.map);
+        login = findViewById(R.id.login);
+        register = findViewById(R.id.register);
 
-        tts = new TTS(this);
+        authStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    saveLocation.setVisibility(View.VISIBLE);
+                    map.setVisibility(View.VISIBLE);
+                    mic.setVisibility(View.VISIBLE);
+                    settings.setVisibility(View.VISIBLE);
+                    login.setVisibility(View.GONE);
+                    register.setVisibility(View.GONE);
+                } else {
+                    Toast.makeText(MainActivity.this, "Login to continue", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
 
         //asking for permission to use location
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -62,9 +91,31 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (lm != null) {
                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             }
-            Toast.makeText(this, "Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Waiting for GPS connection!", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public void openLogin(View view) {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+
+    public void openRegister(View view) {
+        Intent intent = new Intent(this, RegisterActivity.class);
+        startActivity(intent);
+    }
+
+    public void openMaps(View view) {
+        int carId = sharedPreferences.getInt("defaultCar", 0);
+
+        if (carId > 0) {
+            Intent intent = new Intent(this, MapsActivity.class);
+            intent.putExtra("radioBtnValue", carId);
+            startActivity(intent);
+        }else{
+            Toast.makeText(MainActivity.this, "Can not open map without a default vehicle selected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void openSettings(View view) {
@@ -72,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         startActivity(intent);
     }
     
-    //Speech Recognition Methods
     public void speechRec(View view){
         tts.speak("How can I help you?");
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -99,18 +149,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             else if (str.contains("open map")||str.contains("open maps")) {
                 map.performClick();
             }
-        }
-    }
-
-    public void openMaps(View view) {
-        int carId = sharedPreferences.getInt("defaultCar", 0);
-
-        if (carId > 0) {
-            Intent intent = new Intent(this, MapsActivity.class);
-            intent.putExtra("radioBtnValue", carId);
-            startActivity(intent);
-        }else{
-            Toast.makeText(MainActivity.this, "Can not open map without a default vehicle selected", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -166,5 +204,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        firebaseAuth.addAuthStateListener(authStateListener);
     }
 }
