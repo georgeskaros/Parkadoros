@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     RadioGroup allButtons;
     String vehicleType;
 
+
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
 
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         if (allButtons.getCheckedRadioButtonId() == -1)
         {
             // no radio buttons are checked
-            Toast.makeText(MainActivity.this, "There are no buttons", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "There are no buttons checked", Toast.LENGTH_SHORT).show();
             return null;
         }
         else
@@ -153,17 +154,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         allButtons.setOrientation(LinearLayout.VERTICAL);
         for (int i = 1; i <= number; i++) {
             RadioButton rdbtn = new RadioButton(this);
-            rdbtn.setId(View.generateViewId());
+            rdbtn.setId(i);
             rdbtn.setText("Vehicle " + rdbtn.getId());
             rdbtn.setOnClickListener(this);
             allButtons.addView(rdbtn);
-
         }
-        //RadioButton rb = new RadioButton(this);
-        //rb.setId(View.generateViewId());
-        //rb.setText("All parking lots");
-        //rb.setOnClickListener(this);
-        //allButtons.addView(rb);
+        //i set an id of 420 so it doesn't conflict with other ids
+        int idOfAllParkingLots = 420;
+        RadioButton rb = new RadioButton(this);
+        rb.setId(idOfAllParkingLots);
+        rb.setText("All parking lots");
+        rb.setOnClickListener(this);
+        allButtons.addView(rb);
     }
 
     //Speech Recognition Methods
@@ -197,12 +199,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     public void openMaps(View view) {
-        Intent intent = new Intent(this, MapsActivity.class);
-        startActivity(intent);
+        if (getVehicleType() != null) {
+            Intent intent = new Intent(this, MapsActivity.class);
+            intent.putExtra("radioBtnValue", getVehicleType());
+            startActivity(intent);
+        }else{
+            Toast.makeText(MainActivity.this, "Can not open map without a vehicle type selected ", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void saveLocation(View view) {
-        if (getVehicleType() != null) {
+        if ((getVehicleType() != null)&&(!getVehicleType().equals("All parking lots"))) {
             Map<String, Object> location = new HashMap<>();
             final Date currentTime = Calendar.getInstance().getTime();
             location.put("latitude", currentLat);
@@ -215,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
                             Log.d(TAG, "Added location with id: " + documentReference.getId());
-                            Toast.makeText(MainActivity.this, String.valueOf(currentTime), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "location saved", Toast.LENGTH_SHORT).show();
                         }
 
                     })

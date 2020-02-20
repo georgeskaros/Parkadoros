@@ -45,6 +45,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double lat = 2.2;
     double lng = 2.2;
     String vehicleType = " ";
+    String radioBtnValue;
+    Date minDate,maxDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         listPoints = new ArrayList<>();
+        radioBtnValue=getIntent().getExtras().getString("radioBtnValue");
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -79,40 +82,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setMyLocationEnabled(true);
-
+        //TODO make an if so if the radioBtnValue is "All parking lots" will print all the parking lots that are in the db
         db.collection("locations")
-                .whereEqualTo("vehicleType","Vehicle 2")
+                .whereEqualTo("vehicleType",radioBtnValue)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
                         if (task.isSuccessful()) {
 
                             //the following block of code is to find the biggest date that fits the where clause that i had put
                             //first we take the current date and put it to a variable
                             final Date currentDate = Calendar.getInstance().getTime();
-                            Date minDate = currentDate;
+                            minDate = currentDate;
                             //with this for loop we find the oldest date there is in our results
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Date dateTemp = document.getDate("time");
                                 if(minDate.compareTo(dateTemp)>0){
                                     minDate = dateTemp;
+                                    lat = document.getDouble("latitude");
+                                    lng = document.getDouble("longitude");
+                                    vehicleType = document.getString("vehicleType");
                                 }
                             }
                             //we put the minDate to a maxDate to do the reverse
                             //when we find a date greater than maxDate we put that date on max date
                             //and we store latitude, longitude, and vehicleType to some variables so we can use them later
                             // to make a marker for the most resent entry of that vehicle type
-                            Date maxDate = minDate;
+                            maxDate = minDate;
                             for (QueryDocumentSnapshot document : task.getResult()) {
+
                                 Date dateTemp = document.getDate("time");
                                 if(maxDate.compareTo(dateTemp)<0){
+                                    Toast.makeText(MapsActivity.this, "ok", Toast.LENGTH_SHORT).show();
                                     maxDate = dateTemp;
                                     lat = document.getDouble("latitude");
                                     lng = document.getDouble("longitude");
                                     vehicleType = document.getString("vehicleType");
                                 }
                             }
+                            //TODO make an IF so it will check if latLng is (0,0) an will not process the marker
                             LatLng location = new LatLng(lat,lng);
                             MarkerOptions markerOptions = new MarkerOptions();                   //create marker options class so we can ad features to it
                             markerOptions.position(location);
