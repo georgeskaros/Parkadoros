@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,11 +35,11 @@ public class SettingsActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         saveCarId = findViewById(R.id.saveCarId);
-        numberOfCars = findViewById(R.id.numberOfCars);      //edit text for number of cars
+        numberOfCars = findViewById(R.id.numberOfCars);         //edit text for number of cars
         saveNumber = findViewById(R.id.saveNum);                //button for putting the appropriate number of radio buttons
-        allButtons = findViewById(R.id.radiogroup);  //radio group
+        allButtons = findViewById(R.id.radiogroup);             //radio group
 
-        Integer carNum = sharedPreferences.getInt("cars", 1);
+        int carNum = sharedPreferences.getInt("cars", 1);
         if (carNum > 1) {
             addRadioButtons(carNum);
             saveCarId.setVisibility(View.VISIBLE);
@@ -50,6 +51,10 @@ public class SettingsActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt("cars", Integer.parseInt(numberOfCars.getText().toString()));
             editor.apply();
+
+            Intent refresh = new Intent(this, SettingsActivity.class);
+            finish();
+            startActivity(refresh);
 
             Toast.makeText(this, "You can use " + sharedPreferences.getInt("cars", 1) + " cars", Toast.LENGTH_SHORT ).show();
         }
@@ -86,11 +91,13 @@ public class SettingsActivity extends AppCompatActivity {
         if (allButtons.getCheckedRadioButtonId() != -1)
         {
             int selectedId = allButtons.getCheckedRadioButtonId();
-            RadioButton selectedRadioButton = findViewById(selectedId);
-            editor.putInt("defaultCar", Integer.parseInt(selectedRadioButton.getText().toString()));
+            editor.putInt("defaultCar", selectedId);
             editor.apply();
 
-            Toast.makeText(this, "You are using car " + sharedPreferences.getInt("defaultCar", 1), Toast.LENGTH_SHORT).show();
+            if (selectedId != 420)
+                Toast.makeText(this, "You are using car " + sharedPreferences.getInt("defaultCar", 0), Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(this, "You are viewing all your car parking spots", Toast.LENGTH_SHORT).show();
         }
         else {
             Toast.makeText(this, "You must choose a vehicle first", Toast.LENGTH_SHORT).show();
@@ -101,7 +108,7 @@ public class SettingsActivity extends AppCompatActivity {
         allButtons.setOrientation(LinearLayout.VERTICAL);
         for (int i = 1; i <= number; i++) {
             RadioButton radioButton = new RadioButton(this);
-            radioButton.setId(View.generateViewId());
+            radioButton.setId(i);
             radioButton.setText("Vehicle " + radioButton.getId());
             allButtons.addView(radioButton);
             saveCarId.setVisibility(View.VISIBLE);
@@ -111,11 +118,11 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         }
-    }
 
-    //RadioButton rb = new RadioButton(this);
-            //rb.setId(View.generateViewId());
-            //rb.setText("All parking lots");
-            //rb.setOnClickListener(this);
-            //allButtons.addView(rb);
+        int allParkingSpots = 420;
+        RadioButton rb = new RadioButton(this);
+        rb.setId(allParkingSpots);
+        rb.setText("All parking spots");
+        allButtons.addView(rb);
+    }
 }

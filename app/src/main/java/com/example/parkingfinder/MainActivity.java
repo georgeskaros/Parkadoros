@@ -8,20 +8,15 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -31,13 +26,14 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-
+    SharedPreferences sharedPreferences;
     TTS tts;
     MaterialButton saveLocation, map;
     public double currentLat,currentLon;
@@ -48,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         saveLocation = findViewById(R.id.save);
         map = findViewById(R.id.map);
@@ -73,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
+    
     //Speech Recognition Methods
     public void speechRec(View view){
         tts.speak("How can I help you?");
@@ -104,34 +103,49 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     public void openMaps(View view) {
-        Intent intent = new Intent(this, MapsActivity.class);
-        startActivity(intent);
+        int carId = sharedPreferences.getInt("defaultCar", 0);
+
+        if (carId > 0) {
+            Intent intent = new Intent(this, MapsActivity.class);
+            intent.putExtra("radioBtnValue", carId);
+            startActivity(intent);
+        }else{
+            Toast.makeText(MainActivity.this, "Can not open map without a default vehicle selected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void saveLocation(View view) {
-        Map<String, Object> location = new HashMap<>();
-        location.put("latitude", currentLat);
-        location.put("longitude", currentLon);
-        db.collection("locations")
-                .add(location)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d(TAG, "Added location with id: " + documentReference.getId());
-                    }
+        int carId = sharedPreferences.getInt("defaultCar", 0);
 
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding location", e);
-                    }
-                });
+        if ((carId > 0)&&(carId != 420)) {
+            Map<String, Object> location = new HashMap<>();
+            final Date currentTime = Calendar.getInstance().getTime();
+            location.put("latitude", currentLat);
+            location.put("longitude", currentLon);
+            location.put("vehicleId", carId);
+            location.put("time",currentTime);
+            db.collection("locations")
+                    .add(location)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Toast.makeText(MainActivity.this, "Saved location", Toast.LENGTH_SHORT).show();
+                        }
+
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this, "Error saving location", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } else {
+            Toast.makeText(MainActivity.this, "Can't save a location without a default vehicle selected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        //get on location change the current lat and lon
         currentLat = location.getLatitude();
         currentLon = location.getLongitude();
         if (currentLat != 0) {
@@ -152,10 +166,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     @Override
     public void onProviderDisabled(String provider) {
 
-    }
-
-    @Override
-    public void onClick(View v) {
-        // Log.d(TAG, " Name " + ((RadioButton)v).getText() +" Id is "+v.getId());
     }
 }
