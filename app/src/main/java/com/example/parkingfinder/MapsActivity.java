@@ -21,6 +21,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -43,6 +44,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     ArrayList<LatLng> listPoints;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    FirebaseAuth firebaseAuth;
+
     double lat = -2.2;
     double lng = -2.2;
     int vehicleId;
@@ -53,6 +56,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -86,6 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(radioBtnValue != 420) {
             db.collection("locations")
                 .whereEqualTo("vehicleId", radioBtnValue)
+                .whereEqualTo("user", firebaseAuth.getCurrentUser().getUid())
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @SuppressLint("DefaultLocale")
@@ -151,6 +158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
         }else{
             db.collection("locations")
+                .whereEqualTo("user", firebaseAuth.getCurrentUser().getUid())
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>(){
                     @Override

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ParkingFinder</string>
     <string name="title_activity_maps">Map</string>
-    <string name="carNum">Save Cars</string>
+    <string name="carNum">Save Vehicle</string>
     <string name="speechRec">Speech Recognition Button</string>
     <string name="map">Maps</string>
     <string name="saveLoc">Save Location</string>
@@ -12,4 +12,5 @@
     <string name="register">Register</string>
     <string name="login">Login</string>
     <string name="logout">Logout</string>
+    <string name="parkingSpots">All Parking Spots</string>
 </resources>

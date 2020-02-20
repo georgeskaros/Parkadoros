@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             location.put("longitude", currentLon);
             location.put("vehicleId", carId);
             location.put("time",currentTime);
+            location.put("user", firebaseAuth.getCurrentUser().getUid());
             db.collection("locations")
                     .add(location)
                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {

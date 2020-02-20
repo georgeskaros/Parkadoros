@@ -2,15 +2,16 @@
 <resources>
     <string name="app_name">ParkingFinder</string>
     <string name="title_activity_maps">Χάρτης</string>
-    <string name="carNum">Αποθήκευση Αριθμού Αυτοκινήτων</string>
+    <string name="carNum">Αποθήκευση Αριθμού Οχημάτων</string>
     <string name="speechRec">Κουμπί Αναγνώρισης Φωνής</string>
     <string name="map">Χάρτης</string>
     <string name="saveLoc">Αποθήκευση Τοποθεσίας</string>
     <string name="settings">Ρυθμίσεις</string>
     <string name="setGreek">Χρησιμοποιήστε Ελληνικά</string>
     <string name="setEnglish">Χρησιμοποιήστε Αγγλικά</string>
-    <string name="saveCarId">Προεπιλογή Αυτοκινήτου</string>
+    <string name="saveCarId">Προεπιλογή Οχήματος</string>
     <string name="register">Εγγραφή</string>
     <string name="login">Σύνδεση</string>
     <string name="logout">Αποσύνδεση</string>
+    <string name="parkingSpots">Όλα τα παρκαρισμένα οχήματα</string>
 </resources>

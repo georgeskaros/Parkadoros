@@ -41,10 +41,8 @@ public class SettingsActivity extends AppCompatActivity {
         allButtons = findViewById(R.id.radiogroup);             //radio group
 
         int carNum = sharedPreferences.getInt("cars", 1);
-        if (carNum > 1) {
-            addRadioButtons(carNum);
-            saveCarId.setVisibility(View.VISIBLE);
-        }
+        addRadioButtons(carNum);
+        saveCarId.setVisibility(View.VISIBLE);
     }
 
     public void saveCars(View view) {
@@ -114,7 +112,7 @@ public class SettingsActivity extends AppCompatActivity {
             allButtons.addView(radioButton);
             saveCarId.setVisibility(View.VISIBLE);
             if (sharedPreferences.getInt("cars", 1) > 1){
-                if (sharedPreferences.getInt("cars", 1) == i) {
+                if (sharedPreferences.getInt("defaultCar", 0) == i) {
                     radioButton.setChecked(true);
                 }
             }
@@ -123,8 +121,13 @@ public class SettingsActivity extends AppCompatActivity {
         int allParkingSpots = 420;
         RadioButton rb = new RadioButton(this);
         rb.setId(allParkingSpots);
-        rb.setText("All parking spots");
+        rb.setText("All Parking Spots");
         allButtons.addView(rb);
+        if (sharedPreferences.getInt("cars", 1) > 1){
+            if (sharedPreferences.getInt("defaultCar", 0) == 420) {
+                rb.setChecked(true);
+            }
+        }
     }
 
     public void logOut(View view) {
